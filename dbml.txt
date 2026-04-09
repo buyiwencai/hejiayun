@@ -186,9 +186,9 @@ Records sys_role(id, role_name, role_key, description, status) {
   2, '普通用户', 'user', '仅可查看数据', 1
 }
 
-Records sys_user_role(user_id, role_id) {
-  1, 1
-  2, 2
+Records sys_user_role(id, user_id, role_id) {
+  1, 1, 1
+  2, 2, 2
 }
 
 Records hjy_owner(id, name, phone, id_card, gender, car_plate, status) {
