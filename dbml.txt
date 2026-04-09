@@ -1,0 +1,205 @@
+// 合家云社区物业管理平台 - DBML定义
+// Docs: https://dbml.dbdiagram.io/docs
+
+// ===================== 资产维度（4张）=====================
+
+Table hjy_community {
+  id bigint [primary key]
+  name varchar(100)
+  address varchar(255)
+  area decimal(10,2)
+  status tinyint
+  create_time datetime
+  update_time datetime
+}
+
+Table hjy_building {
+  id bigint [primary key]
+  community_id bigint
+  name varchar(50)
+  floors int
+  remark varchar(255)
+  create_time datetime
+  update_time datetime
+}
+
+Table hjy_unit {
+  id bigint [primary key]
+  building_id bigint
+  name varchar(50)
+  floor_num int
+  create_time datetime
+  update_time datetime
+}
+
+Table hjy_room {
+  id bigint [primary key]
+  unit_id bigint
+  room_no varchar(50)
+  floor int
+  area decimal(10,2)
+  room_type varchar(20)
+  status varchar(20)
+  create_time datetime
+  update_time datetime
+}
+
+// ===================== 权限维度（5张）=====================
+
+Table sys_user {
+  id bigint [primary key]
+  username varchar(50)
+  password varchar(100)
+  real_name varchar(50)
+  phone varchar(20)
+  email varchar(100)
+  avatar varchar(255)
+  status tinyint
+  create_time datetime
+  update_time datetime
+}
+
+Table sys_role {
+  id bigint [primary key]
+  role_name varchar(50)
+  role_key varchar(50)
+  description varchar(255)
+  status tinyint
+  create_time datetime
+  update_time datetime
+}
+
+Table sys_menu {
+  id bigint [primary key]
+  parent_id bigint
+  name varchar(50)
+  path varchar(200)
+  component varchar(255)
+  perms varchar(100)
+  icon varchar(50)
+  sort_num int
+  create_time datetime
+  update_time datetime
+}
+
+Table sys_user_role {
+  id bigint [primary key]
+  user_id bigint
+  role_id bigint
+  create_time datetime
+}
+
+Table sys_role_menu {
+  id bigint [primary key]
+  role_id bigint
+  menu_id bigint
+  create_time datetime
+}
+
+// ===================== 业主维度（2张）=====================
+
+Table hjy_owner {
+  id bigint [primary key]
+  name varchar(50)
+  phone varchar(20)
+  id_card varchar(20)
+  gender tinyint
+  birthday date
+  car_plate varchar(20)
+  emergency_contact varchar(50)
+  emergency_phone varchar(20)
+  status tinyint
+  create_time datetime
+  update_time datetime
+}
+
+Table hjy_owner_room {
+  id bigint [primary key]
+  owner_id bigint
+  room_id bigint
+  relation_type varchar(20)
+  bind_time datetime
+  unbind_time datetime
+  status tinyint
+  create_time datetime
+  update_time datetime
+}
+
+// ===================== 关系引用 =====================
+
+// 社区资产层级关系
+Ref: hjy_building.community_id > hjy_community.id
+Ref: hjy_unit.building_id > hjy_building.id
+Ref: hjy_room.unit_id > hjy_unit.id
+
+// 菜单自关联（parent_id指向自己）
+Ref: sys_menu.parent_id > sys_menu.id
+
+// 用户-角色多对多
+Ref: sys_user_role.user_id > sys_user.id
+Ref: sys_user_role.role_id > sys_role.id
+
+// 角色-菜单多对多
+Ref: sys_role_menu.role_id > sys_role.id
+Ref: sys_role_menu.menu_id > sys_menu.id
+
+// 业主-人房关系
+Ref: hjy_owner_room.owner_id > hjy_owner.id
+Ref: hjy_owner_room.room_id > hjy_room.id
+
+// ===================== 初始数据 =====================
+
+Records hjy_community(id, name, address, area, status) {
+  1, '阳光花园小区', '北京市朝阳区望京街道1号', 50000.00, 1
+  2, '和谐苑小区', '北京市海淀区中关村街道10号', 35000.00, 1
+}
+
+Records hjy_building(id, community_id, name, floors, remark) {
+  1, 1, '1号楼', 33, '主楼'
+  2, 1, '2号楼', 28, '副楼'
+  3, 2, 'A座', 18, null
+}
+
+Records hjy_unit(id, building_id, name, floor_num) {
+  1, 1, '1单元', 33
+  2, 1, '2单元', 33
+  3, 2, '1单元', 28
+  4, 3, '1单元', 18
+}
+
+Records hjy_room(id, unit_id, room_no, floor, area, room_type, status) {
+  1, 1, '101', 1, 89.50, '两室一厅', 'occupied'
+  2, 1, '102', 1, 120.00, '三室两厅', 'vacant'
+  3, 1, '201', 2, 89.50, '两室一厅', 'occupied'
+  4, 2, '101', 1, 75.00, '一室一厅', 'occupied'
+  5, 3, '301', 3, 95.00, '两室一厅', 'vacant'
+  6, 4, '501', 5, 110.00, '三室一厅', 'decorated'
+}
+
+Records sys_user(id, username, password, real_name, phone, status) {
+  1, 'admin', '123456', '系统管理员', '13800138000', 1
+  2, 'operator', '123456', '操作员', '13800138001', 1
+}
+
+Records sys_role(id, role_name, role_key, description, status) {
+  1, '管理员', 'admin', '拥有系统所有权限', 1
+  2, '普通用户', 'user', '仅可查看数据', 1
+}
+
+Records sys_user_role(user_id, role_id) {
+  1, 1
+  2, 2
+}
+
+Records hjy_owner(id, name, phone, id_card, gender, car_plate, status) {
+  1, '张三', '13900139000', '110101199001011234', 1, '京A12345', 1
+  2, '李四', '13900139001', '110101199002022345', 0, '京B67890', 1
+  3, '王五', '13900139002', '110101199003033456', 1, null, 1
+}
+
+Records hjy_owner_room(id, owner_id, room_id, relation_type, status) {
+  1, 1, 1, 'owner', 1
+  2, 1, 4, 'family', 1
+  3, 2, 3, 'owner', 1
+  4, 3, 6, 'tenant', 1
+}
