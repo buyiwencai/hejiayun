@@ -4,7 +4,7 @@
       <template #header>
         <el-form :inline="true" :model="queryForm">
           <el-form-item label="所属小区">
-            <el-select v-model="queryForm.communityId" placeholder="请选择小区" clearable>
+            <el-select v-model="queryForm.communityId" placeholder="请选择小区" clearable style="width: 180px">
               <el-option v-for="c in communities" :key="c.id" :label="c.name" :value="c.id" />
             </el-select>
           </el-form-item>
@@ -24,6 +24,7 @@
 
       <el-table :data="tableData" stripe v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="communityName" label="所属小区" />
         <el-table-column prop="name" label="楼栋名称" />
         <el-table-column prop="floors" label="楼层数" />
         <el-table-column prop="remark" label="备注" />
@@ -56,7 +57,7 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="所属小区" prop="communityId">
-          <el-select v-model="form.communityId" placeholder="请选择小区">
+          <el-select v-model="form.communityId" placeholder="请选择小区" style="width: 100%">
             <el-option v-for="c in communities" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
         </el-form-item>

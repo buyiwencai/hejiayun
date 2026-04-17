@@ -3,9 +3,14 @@
     <el-card>
       <template #header>
         <el-form :inline="true" :model="queryForm">
+          <el-form-item label="所属小区">
+            <el-select v-model="queryForm.communityId" placeholder="请选择小区" clearable @change="handleCommunityChange" style="width: 180px">
+              <el-option v-for="c in communities" :key="c.id" :label="c.name" :value="c.id" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="所属楼栋">
-            <el-select v-model="queryForm.buildingId" placeholder="请选择楼栋" clearable @change="handleBuildingChange">
-              <el-option v-for="b in buildings" :key="b.id" :label="b.name" :value="b.id" />
+            <el-select v-model="queryForm.buildingId" placeholder="请选择楼栋" clearable @change="handleBuildingChange" style="width: 180px">
+              <el-option v-for="b in filteredBuildings" :key="b.id" :label="b.name" :value="b.id" />
             </el-select>
           </el-form-item>
           <el-form-item label="单元名称">
@@ -24,6 +29,8 @@
 
       <el-table :data="tableData" stripe v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="communityName" label="所属小区" />
+        <el-table-column prop="buildingName" label="所属楼栋" />
         <el-table-column prop="name" label="单元名称" />
         <el-table-column prop="floorNum" label="楼层数" />
         <el-table-column prop="createTime" label="创建时间" />
@@ -52,11 +59,16 @@
       />
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+        <el-form-item label="所属小区" prop="communityId">
+          <el-select v-model="form.communityId" placeholder="请选择小区" style="width: 100%" @change="handleFormCommunityChange">
+            <el-option v-for="c in communities" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="所属楼栋" prop="buildingId">
-          <el-select v-model="form.buildingId" placeholder="请选择楼栋">
-            <el-option v-for="b in buildings" :key="b.id" :label="b.name" :value="b.id" />
+          <el-select v-model="form.buildingId" placeholder="请先选择小区" style="width: 100%" :disabled="!form.communityId">
+            <el-option v-for="b in formFilteredBuildings" :key="b.id" :label="b.name" :value="b.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="单元名称" prop="name">
@@ -77,25 +89,39 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getUnitList, addUnit, updateUnit, deleteUnit, getAllBuildings } from '../../api'
+import { getUnitList, addUnit, updateUnit, deleteUnit, getAllCommunities, getAllBuildings } from '../../api'
 
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
+const communities = ref([])
 const buildings = ref([])
 const isAdmin = computed(() => localStorage.getItem('roleKey') === 'admin')
 
-const queryForm = reactive({ buildingId: null, name: '' })
+const queryForm = reactive({ communityId: null, buildingId: null, name: '' })
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增单元')
 const formRef = ref()
-const form = reactive({ id: null, buildingId: null, name: '', floorNum: 1 })
+const form = reactive({ id: null, communityId: null, buildingId: null, name: '', floorNum: 1 })
 const rules = {
+  communityId: [{ required: true, message: '请选择所属小区', trigger: 'change' }],
   buildingId: [{ required: true, message: '请选择所属楼栋', trigger: 'change' }],
   name: [{ required: true, message: '请输入单元名称', trigger: 'blur' }]
 }
+
+// 搜索条件联动
+const filteredBuildings = computed(() => {
+  if (!queryForm.communityId) return buildings.value
+  return buildings.value.filter(b => b.communityId === queryForm.communityId)
+})
+
+// 表单联动
+const formFilteredBuildings = computed(() => {
+  if (!form.communityId) return []
+  return buildings.value.filter(b => b.communityId === form.communityId)
+})
 
 const loadData = async () => {
   loading.value = true
@@ -106,21 +132,32 @@ const loadData = async () => {
   } catch (e) {} finally { loading.value = false }
 }
 
-const loadBuildings = async () => {
-  const res = await getAllBuildings()
-  buildings.value = res.data || []
+const loadAll = async () => {
+  const [commRes, buildRes] = await Promise.all([getAllCommunities(), getAllBuildings()])
+  communities.value = commRes.data || []
+  buildings.value = buildRes.data || []
 }
 
+const handleCommunityChange = () => { queryForm.buildingId = null; pageNum.value = 1; loadData() }
 const handleBuildingChange = () => { pageNum.value = 1; loadData() }
 const handleQuery = () => { pageNum.value = 1; loadData() }
-const handleReset = () => { queryForm.buildingId = null; queryForm.name = ''; handleQuery() }
+const handleReset = () => { queryForm.communityId = null; queryForm.buildingId = null; queryForm.name = ''; handleQuery() }
+
+const handleFormCommunityChange = () => { form.buildingId = null }
 
 const handleAdd = () => {
-  form.id = null; form.buildingId = null; form.name = ''; form.floorNum = 1
+  form.id = null; form.communityId = null; form.buildingId = null; form.name = ''; form.floorNum = 1
   dialogTitle.value = '新增单元'; dialogVisible.value = true
 }
 
-const handleEdit = (row) => { Object.assign(form, row); dialogTitle.value = '编辑单元'; dialogVisible.value = true }
+const handleEdit = (row) => {
+  Object.assign(form, row)
+  if (row.buildingId) {
+    const building = buildings.value.find(b => b.id === row.buildingId)
+    if (building) form.communityId = building.communityId
+  }
+  dialogTitle.value = '编辑单元'; dialogVisible.value = true
+}
 
 const handleSubmit = async () => {
   const valid = await formRef.value.validate().catch(() => false)
@@ -140,5 +177,5 @@ const handleDelete = (row) => {
     }).catch(() => {})
 }
 
-onMounted(() => { loadData(); loadBuildings() })
+onMounted(() => { loadData(); loadAll() })
 </script>

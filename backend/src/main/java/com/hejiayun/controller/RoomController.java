@@ -2,8 +2,14 @@ package com.hejiayun.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hejiayun.mapper.BuildingMapper;
+import com.hejiayun.mapper.CommunityMapper;
+import com.hejiayun.mapper.UnitMapper;
 import com.hejiayun.model.common.CommonResult;
+import com.hejiayun.model.entity.Building;
+import com.hejiayun.model.entity.Community;
 import com.hejiayun.model.entity.Room;
+import com.hejiayun.model.entity.Unit;
 import com.hejiayun.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +26,21 @@ public class RoomController {
     @Autowired
     private RoomService roomService;
 
+    @Autowired
+    private UnitMapper unitMapper;
+
+    @Autowired
+    private BuildingMapper buildingMapper;
+
+    @Autowired
+    private CommunityMapper communityMapper;
+
     @GetMapping("/list")
     public CommonResult<Page<Room>> list(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Long communityId,
+            @RequestParam(required = false) Long buildingId,
             @RequestParam(required = false) Long unitId,
             @RequestParam(required = false) String roomNo,
             @RequestParam(required = false) String status) {
@@ -39,6 +56,22 @@ public class RoomController {
             wrapper.eq(Room::getStatus, status);
         }
         Page<Room> result = roomService.page(page, wrapper);
+        for (Room r : result.getRecords()) {
+            if (r.getUnitId() != null) {
+                Unit u = unitMapper.selectById(r.getUnitId());
+                if (u != null) {
+                    r.setUnitName(u.getName());
+                    Building b = buildingMapper.selectById(u.getBuildingId());
+                    if (b != null) {
+                        r.setBuildingName(b.getName());
+                        if (b.getCommunityId() != null) {
+                            Community c = communityMapper.selectById(b.getCommunityId());
+                            if (c != null) r.setCommunityName(c.getName());
+                        }
+                    }
+                }
+            }
+        }
         return CommonResult.success(result);
     }
 

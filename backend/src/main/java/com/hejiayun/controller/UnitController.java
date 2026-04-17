@@ -2,7 +2,11 @@ package com.hejiayun.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hejiayun.mapper.BuildingMapper;
+import com.hejiayun.mapper.CommunityMapper;
 import com.hejiayun.model.common.CommonResult;
+import com.hejiayun.model.entity.Building;
+import com.hejiayun.model.entity.Community;
 import com.hejiayun.model.entity.Room;
 import com.hejiayun.model.entity.Unit;
 import com.hejiayun.service.RoomService;
@@ -23,10 +27,17 @@ public class UnitController {
     @Autowired
     private RoomService roomService;
 
+    @Autowired
+    private BuildingMapper buildingMapper;
+
+    @Autowired
+    private CommunityMapper communityMapper;
+
     @GetMapping("/list")
     public CommonResult<Page<Unit>> list(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Long communityId,
             @RequestParam(required = false) Long buildingId,
             @RequestParam(required = false) String name) {
         Page<Unit> page = new Page<>(pageNum, pageSize);
@@ -38,6 +49,18 @@ public class UnitController {
             wrapper.like(Unit::getName, name);
         }
         Page<Unit> result = unitService.page(page, wrapper);
+        for (Unit u : result.getRecords()) {
+            if (u.getBuildingId() != null) {
+                Building b = buildingMapper.selectById(u.getBuildingId());
+                if (b != null) {
+                    u.setBuildingName(b.getName());
+                    if (b.getCommunityId() != null) {
+                        Community c = communityMapper.selectById(b.getCommunityId());
+                        if (c != null) u.setCommunityName(c.getName());
+                    }
+                }
+            }
+        }
         return CommonResult.success(result);
     }
 
@@ -48,12 +71,28 @@ public class UnitController {
             wrapper.eq(Unit::getBuildingId, buildingId);
         }
         List<Unit> units = unitService.list(wrapper);
+        for (Unit u : units) {
+            if (u.getBuildingId() != null) {
+                Building b = buildingMapper.selectById(u.getBuildingId());
+                if (b != null) u.setBuildingName(b.getName());
+            }
+        }
         return CommonResult.success(units);
     }
 
     @GetMapping("/{id}")
     public CommonResult<Unit> getById(@PathVariable Long id) {
         Unit unit = unitService.getById(id);
+        if (unit != null && unit.getBuildingId() != null) {
+            Building b = buildingMapper.selectById(unit.getBuildingId());
+            if (b != null) {
+                unit.setBuildingName(b.getName());
+                if (b.getCommunityId() != null) {
+                    Community c = communityMapper.selectById(b.getCommunityId());
+                    if (c != null) unit.setCommunityName(c.getName());
+                }
+            }
+        }
         return CommonResult.success(unit);
     }
 
@@ -76,7 +115,6 @@ public class UnitController {
 
     @DeleteMapping("/{id}")
     public CommonResult<?> delete(@PathVariable Long id) {
-        // 检查是否有下级房屋
         long roomCount = roomService.count(
                 new LambdaQueryWrapper<Room>().eq(Room::getUnitId, id));
         if (roomCount > 0) {

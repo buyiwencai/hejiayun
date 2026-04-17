@@ -1,6 +1,7 @@
 package com.hejiayun.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
@@ -18,6 +19,12 @@ public class Room {
     private String status;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    @TableField(exist = false)
+    private String communityName;
+    @TableField(exist = false)
+    private String buildingName;
+    @TableField(exist = false)
+    private String unitName;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -37,4 +44,10 @@ public class Room {
     public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
     public LocalDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
+    public String getCommunityName() { return communityName; }
+    public void setCommunityName(String communityName) { this.communityName = communityName; }
+    public String getBuildingName() { return buildingName; }
+    public void setBuildingName(String buildingName) { this.buildingName = buildingName; }
+    public String getUnitName() { return unitName; }
+    public void setUnitName(String unitName) { this.unitName = unitName; }
 }
