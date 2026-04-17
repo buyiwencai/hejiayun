@@ -121,26 +121,35 @@ const loadOwners = async () => {
 }
 
 const loadRoomTree = async () => {
-  const communities = await getAllCommunities()
-  const tree = []
-  for (const c of communities.data || []) {
-    const buildings = await getAllBuildings(c.id)
-    const cNode = { id: 'c_' + c.id, name: c.name, children: [] }
-    for (const b of buildings.data || []) {
-      const units = await getAllUnits(b.id)
-      const bNode = { id: 'b_' + b.id, name: b.name, children: [] }
-      for (const u of units.data || []) {
-        const rooms = await getAllRooms(u.id)
-        const uNode = { id: 'u_' + u.id, name: u.name, children: [] }
-        for (const r of rooms.data || []) {
-          uNode.children.push({ id: r.id, name: r.roomNo })
-        }
-        bNode.children.push(uNode)
-      }
-      cNode.children.push(bNode)
-    }
-    tree.push(cNode)
-  }
+  const [communities, buildings, units, rooms] = await Promise.all([
+    getAllCommunities(),
+    getAllBuildings(),
+    getAllUnits(),
+    getAllRooms()
+  ])
+
+  const comms = communities.data || []
+  const builds = buildings.data || []
+  const unitsList = units.data || []
+  const roomsList = rooms.data || []
+
+  const tree = comms.map(c => ({
+    id: c.id,
+    name: c.name,
+    children: builds.filter(b => b.communityId === c.id).map(b => ({
+      id: b.id,
+      name: b.name,
+      children: unitsList.filter(u => u.buildingId === b.id).map(u => ({
+        id: u.id,
+        name: u.name,
+        children: roomsList.filter(r => r.unitId === u.id).map(r => ({
+          id: r.id,
+          name: r.roomNo
+        }))
+      }))
+    }))
+  }))
+
   roomTree.value = tree
 }
 
