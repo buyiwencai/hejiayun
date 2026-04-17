@@ -110,6 +110,13 @@ public class RoomController {
 
     @DeleteMapping("/{id}")
     public CommonResult<?> delete(@PathVariable Long id) {
+        Room room = roomService.getById(id);
+        if (room == null) {
+            return CommonResult.error("房屋不存在");
+        }
+        if ("occupied".equals(room.getStatus())) {
+            return CommonResult.error("该房屋已入住，无法删除");
+        }
         roomService.removeById(id);
         return CommonResult.success("房屋删除成功");
     }
