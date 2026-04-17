@@ -166,6 +166,18 @@ public class OwnerRoomController {
             return CommonResult.error("该业主已绑定此房屋");
         }
 
+        // 如果是租客关系，检查该房屋是否已有租客
+        if ("tenant".equals(ownerRoom.getRelationType())) {
+            long tenantCount = ownerRoomService.count(
+                    new LambdaQueryWrapper<OwnerRoom>()
+                            .eq(OwnerRoom::getRoomId, ownerRoom.getRoomId())
+                            .eq(OwnerRoom::getRelationType, "tenant")
+                            .eq(OwnerRoom::getStatus, 1));
+            if (tenantCount > 0) {
+                return CommonResult.error("该房屋已有租客，无法重复绑定");
+            }
+        }
+
         ownerRoom.setBindTime(LocalDateTime.now());
         ownerRoom.setStatus(1);
         ownerRoom.setCreateTime(LocalDateTime.now());
