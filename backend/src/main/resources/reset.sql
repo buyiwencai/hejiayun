@@ -9,7 +9,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- 清空所有数据
 TRUNCATE TABLE sys_user_role;
-TRUNCATE TABLE sys_role_menu;
 TRUNCATE TABLE sys_role;
 TRUNCATE TABLE hjy_owner_room;
 TRUNCATE TABLE hjy_owner;
@@ -17,7 +16,6 @@ TRUNCATE TABLE hjy_room;
 TRUNCATE TABLE hjy_unit;
 TRUNCATE TABLE hjy_building;
 TRUNCATE TABLE hjy_community;
-TRUNCATE TABLE sys_menu;
 
 -- 重新启用外键检查
 SET FOREIGN_KEY_CHECKS = 1;
@@ -31,26 +29,8 @@ INSERT INTO sys_role (id, role_name, role_key, description, status) VALUES
 (1, '管理员', 'admin', '拥有系统所有权限', 1),
 (2, '普通用户', 'user', '仅可查看数据', 1);
 
--- 插入菜单
-INSERT INTO sys_menu (id, parent_id, name, path, component, perms, icon, sort_num) VALUES
-(1, 0, '系统管理', '/system', NULL, NULL, 'el-icon-setting', 1),
-(2, 1, '用户管理', '/system/user', 'system/User.vue', 'sys:user:list', 'el-icon-user', 1),
-(3, 1, '角色管理', '/system/role', 'system/Role.vue', 'sys:role:list', 'el-icon-postcard', 2),
-(4, 1, '菜单管理', '/system/menu', 'system/Menu.vue', 'sys:menu:list', 'el-icon-menu', 3),
-(5, 0, '社区管理', '/community', NULL, NULL, 'el-icon-office-building', 2),
-(6, 5, '小区管理', '/community/community', 'community/Community.vue', 'community:community:list', 'el-icon-location', 1),
-(7, 5, '楼栋管理', '/community/building', 'community/Building.vue', 'community:building:list', 'el-icon-house', 2),
-(8, 5, '单元管理', '/community/unit', 'community/Unit.vue', 'community:unit:list', 'el-icon-document', 3),
-(9, 5, '房屋管理', '/community/room', 'community/Room.vue', 'community:room:list', 'el-icon-house', 4),
-(10, 0, '业主管理', '/owner', NULL, NULL, 'el-icon-user-filled', 3),
-(11, 10, '业主档案', '/owner/list', 'owner/Owner.vue', 'owner:list', 'el-icon-notebook-2', 1),
-(12, 10, '人房绑定', '/owner/binding', 'owner/Binding.vue', 'owner:binding', 'el-icon-connection', 2),
-(13, 0, '数据统计', '/statistics', NULL, NULL, 'el-icon-data-analysis', 4),
-(14, 13, '资产统计', '/statistics/assets', 'statistics/Assets.vue', 'statistics:assets', 'el-icon-pie-chart', 1);
-
--- 给 admin 用户分配管理员角色和所有菜单
+-- 给 admin 用户分配管理员角色
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);
-INSERT INTO sys_role_menu (role_id, menu_id) SELECT 1, id FROM sys_menu;
 
 -- 给 operator 用户分配普通用户角色
 INSERT INTO sys_user_role (user_id, role_id) VALUES (2, 2);

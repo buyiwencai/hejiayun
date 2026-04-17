@@ -34,12 +34,6 @@ const routes = [
         meta: { title: '角色管理' }
       },
       {
-        path: '/system/menu',
-        name: 'SystemMenu',
-        component: () => import('../views/system/Menu.vue'),
-        meta: { title: '菜单管理' }
-      },
-      {
         path: '/community/community',
         name: 'Community',
         component: () => import('../views/community/Community.vue'),

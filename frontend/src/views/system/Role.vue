@@ -30,10 +30,9 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" />
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="150">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="primary" @click="handleAssignMenus(row)">分配菜单</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -64,30 +63,13 @@
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
-
-    <!-- 分配菜单弹窗 -->
-    <el-dialog v-model="menuDialogVisible" title="分配菜单权限" width="500px">
-      <el-tree
-        ref="menuTreeRef"
-        :data="menuTree"
-        :props="{ label: 'name', children: 'children' }"
-        node-key="id"
-        :check-strictly="false"
-        show-checkbox
-        default-expand-all
-      />
-      <template #footer>
-        <el-button @click="menuDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmitMenus">确定</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getRoleList, addRole, updateRole, deleteRole, getMenuTree, getRoleMenus, assignRoleMenus } from '../../api'
+import { getRoleList, addRole, updateRole, deleteRole } from '../../api'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -107,11 +89,6 @@ const rules = {
 }
 
 const queryForm = reactive({ roleName: '' })
-
-const menuDialogVisible = ref(false)
-const menuTree = ref([])
-const menuTreeRef = ref()
-const currentRoleId = ref(null)
 
 const loadData = async () => {
   loading.value = true
@@ -163,22 +140,6 @@ const handleDelete = (row) => {
       ElMessage.success('删除成功')
       loadData()
     }).catch(() => {})
-}
-
-const handleAssignMenus = async (row) => {
-  currentRoleId.value = row.id
-  const treeRes = await getMenuTree()
-  menuTree.value = treeRes.data || []
-  const menusRes = await getRoleMenus(row.id)
-  menuTreeRef.value?.setCheckedKeys(menusRes.data || [])
-  menuDialogVisible.value = true
-}
-
-const handleSubmitMenus = async () => {
-  const menuIds = menuTreeRef.value?.getCheckedKeys() || []
-  await assignRoleMenus(currentRoleId.value, menuIds)
-  ElMessage.success('菜单分配成功')
-  menuDialogVisible.value = false
 }
 
 onMounted(() => loadData())

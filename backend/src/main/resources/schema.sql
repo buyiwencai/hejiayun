@@ -105,55 +105,7 @@ CREATE TABLE sys_role (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
 -- ----------------------------
--- 7. 权限维度 - 菜单表
--- ----------------------------
-DROP TABLE IF EXISTS sys_menu;
-CREATE TABLE sys_menu (
-    id BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    parent_id BIGINT(20) DEFAULT 0 COMMENT '父菜单ID, 0为根',
-    name VARCHAR(50) NOT NULL COMMENT '菜单名称',
-    path VARCHAR(200) COMMENT '路由路径',
-    component VARCHAR(255) COMMENT '组件路径',
-    perms VARCHAR(100) COMMENT '权限标识',
-    icon VARCHAR(50) COMMENT '菜单图标',
-    sort_num INT DEFAULT 0 COMMENT '排序号',
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单表';
-
--- ----------------------------
--- 8. 权限维度 - 用户角色关联表
--- ----------------------------
-DROP TABLE IF EXISTS sys_user_role;
-CREATE TABLE sys_user_role (
-    id BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    user_id BIGINT(20) NOT NULL COMMENT '用户ID',
-    role_id BIGINT(20) NOT NULL COMMENT '角色ID',
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_user_role (user_id, role_id),
-    CONSTRAINT fk_ur_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES sys_role(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联表';
-
--- ----------------------------
--- 9. 权限维度 - 角色菜单关联表
--- ----------------------------
-DROP TABLE IF EXISTS sys_role_menu;
-CREATE TABLE sys_role_menu (
-    id BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    role_id BIGINT(20) NOT NULL COMMENT '角色ID',
-    menu_id BIGINT(20) NOT NULL COMMENT '菜单ID',
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_role_menu (role_id, menu_id),
-    CONSTRAINT fk_rm_role FOREIGN KEY (role_id) REFERENCES sys_role(id) ON DELETE CASCADE,
-    CONSTRAINT fk_rm_menu FOREIGN KEY (menu_id) REFERENCES sys_menu(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色菜单关联表';
-
--- ----------------------------
--- 10. 业主维度 - 业主档案表
+-- 7. 业主维度 - 业主档案表
 -- ----------------------------
 DROP TABLE IF EXISTS hjy_owner;
 CREATE TABLE hjy_owner (
@@ -173,7 +125,7 @@ CREATE TABLE hjy_owner (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业主档案表';
 
 -- ----------------------------
--- 11. 业主维度 - 人房关联表
+-- 8. 业主维度 - 人房关联表
 -- ----------------------------
 DROP TABLE IF EXISTS hjy_owner_room;
 CREATE TABLE hjy_owner_room (
@@ -206,31 +158,11 @@ INSERT INTO sys_role (role_name, role_key, description, status) VALUES
 ('管理员', 'admin', '拥有系统所有权限', 1),
 ('普通用户', 'user', '仅可查看数据', 1);
 
--- 插入菜单
-INSERT INTO sys_menu (parent_id, name, path, component, perms, icon, sort_num) VALUES
-(0, '系统管理', '/system', NULL, NULL, 'el-icon-setting', 1),
-(1, '用户管理', '/system/user', 'system/User.vue', 'sys:user:list', 'el-icon-user', 1),
-(1, '角色管理', '/system/role', 'system/Role.vue', 'sys:role:list', 'el-icon-postcard', 2),
-(1, '菜单管理', '/system/menu', 'system/Menu.vue', 'sys:menu:list', 'el-icon-menu', 3),
-(0, '社区管理', '/community', NULL, NULL, 'el-icon-office-building', 2),
-(5, '小区管理', '/community/community', 'community/Community.vue', 'community:community:list', 'el-icon-location', 1),
-(5, '楼栋管理', '/community/building', 'community/Building.vue', 'community:building:list', 'el-icon-house', 2),
-(5, '单元管理', '/community/unit', 'community/Unit.vue', 'community:unit:list', 'el-icon-document', 3),
-(5, '房屋管理', '/community/room', 'community/Room.vue', 'community:room:list', 'el-icon-house', 4),
-(0, '业主管理', '/owner', NULL, NULL, 'el-icon-user-filled', 3),
-(10, '业主档案', '/owner/list', 'owner/Owner.vue', 'owner:list', 'el-icon-notebook-2', 1),
-(10, '人房绑定', '/owner/binding', 'owner/Binding.vue', 'owner:binding', 'el-icon-connection', 2),
-(0, '数据统计', '/statistics', NULL, NULL, 'el-icon-data-analysis', 4),
-(12, '资产统计', '/statistics/assets', 'statistics/Assets.vue', 'statistics:assets', 'el-icon-pie-chart', 1);
-
--- 给管理员(admin)分配所有菜单
+-- 给管理员(admin)分配角色
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);
-INSERT INTO sys_role_menu (role_id, menu_id)
-SELECT 1, id FROM sys_menu;
 
--- 给普通用户(operator)分配查看权限(只能看菜单，不能操作)
+-- 给普通用户(operator)分配角色
 INSERT INTO sys_user_role (user_id, role_id) VALUES (2, 2);
--- 普通用户只看二级菜单，不给写操作权限（前端控制）
 
 -- 插入测试小区
 INSERT INTO hjy_community (name, address, area, status) VALUES
