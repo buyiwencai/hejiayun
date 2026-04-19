@@ -105,6 +105,20 @@ CREATE TABLE sys_role (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
 -- ----------------------------
+-- 6.5. 权限维度 - 用户角色关联表
+-- ----------------------------
+DROP TABLE IF EXISTS sys_user_role;
+CREATE TABLE sys_user_role (
+    id BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    user_id BIGINT(20) NOT NULL COMMENT '用户ID',
+    role_id BIGINT(20) NOT NULL COMMENT '角色ID',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (id),
+    CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES sys_role(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联表';
+
+-- ----------------------------
 -- 7. 业主维度 - 业主档案表
 -- ----------------------------
 DROP TABLE IF EXISTS hjy_owner;
