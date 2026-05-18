@@ -212,15 +212,25 @@ const handleAdd = () => {
 }
 
 const handleEdit = (row) => {
-  Object.assign(form, row)
-  // 编辑时需要设置上级联动数据
-  if (row.buildingId) {
-    const building = buildings.value.find(b => b.id === row.buildingId)
-    if (building) form.communityId = building.communityId
-  }
+  // 先清空表单，防止上次弹窗的值残留
+  form.id = null; form.communityId = null; form.buildingId = null; form.unitId = null
+  form.roomNo = ''; form.floor = 0; form.area = null; form.roomType = ''; form.status = 'vacant'
+  // 复制基本字段
+  form.id = row.id
+  form.roomNo = row.roomNo
+  form.floor = row.floor
+  form.area = row.area
+  form.roomType = row.roomType
+  form.status = row.status
+  // 从 unitId 向上反查 buildingId → communityId
   if (row.unitId) {
+    form.unitId = row.unitId
     const unit = units.value.find(u => u.id === row.unitId)
-    if (unit) form.buildingId = unit.buildingId
+    if (unit) {
+      form.buildingId = unit.buildingId
+      const building = buildings.value.find(b => b.id === unit.buildingId)
+      if (building) form.communityId = building.communityId
+    }
   }
   dialogTitle.value = '编辑房屋'; dialogVisible.value = true
 }
