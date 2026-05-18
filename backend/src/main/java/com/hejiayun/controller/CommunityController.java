@@ -5,8 +5,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hejiayun.model.common.CommonResult;
 import com.hejiayun.model.entity.Building;
 import com.hejiayun.model.entity.Community;
+import com.hejiayun.model.entity.Room;
+import com.hejiayun.model.entity.Unit;
 import com.hejiayun.service.BuildingService;
 import com.hejiayun.service.CommunityService;
+import com.hejiayun.service.RoomService;
+import com.hejiayun.service.UnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +29,12 @@ public class CommunityController {
 
     @Autowired
     private BuildingService buildingService;
+
+    @Autowired
+    private UnitService unitService;
+
+    @Autowired
+    private RoomService roomService;
 
     @GetMapping("/list")
     public CommonResult<Page<Community>> list(
@@ -93,13 +103,17 @@ public class CommunityController {
                     new LambdaQueryWrapper<Building>().eq(Building::getCommunityId, c.getId()));
             map.put("buildingCount", buildingCount);
 
-            // 统计房间数
+            // 统计房间数：楼栋→单元→房间
             List<Building> buildings = buildingService.list(
                     new LambdaQueryWrapper<Building>().eq(Building::getCommunityId, c.getId()));
             long roomCount = 0;
             for (Building b : buildings) {
-                roomCount += buildingService.count(
-                        new LambdaQueryWrapper<Building>().eq(Building::getId, b.getId()));
+                List<Unit> units = unitService.list(
+                        new LambdaQueryWrapper<Unit>().eq(Unit::getBuildingId, b.getId()));
+                for (Unit u : units) {
+                    roomCount += roomService.count(
+                            new LambdaQueryWrapper<Room>().eq(Room::getUnitId, u.getId()));
+                }
             }
             map.put("roomCount", roomCount);
 
