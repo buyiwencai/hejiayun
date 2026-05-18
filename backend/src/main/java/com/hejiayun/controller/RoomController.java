@@ -138,6 +138,7 @@ public class RoomController {
         result.put("total", totalCount);
         result.put("vacantPercent", totalCount > 0 ? (vacantCount * 100.0 / totalCount) : 0);
         result.put("occupiedPercent", totalCount > 0 ? (occupiedCount * 100.0 / totalCount) : 0);
+        result.put("decoratedPercent", totalCount > 0 ? (decoratedCount * 100.0 / totalCount) : 0);
 
         return CommonResult.success(result);
     }

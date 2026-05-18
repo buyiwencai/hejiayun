@@ -55,6 +55,7 @@
             <div class="status-item">
               <span class="label">装修中</span>
               <span class="value decorated">{{ roomStats.decorated || 0 }}</span>
+              <span class="percent">({{ (roomStats.decoratedPercent || 0).toFixed(1) }}%)</span>
             </div>
           </div>
         </el-card>
