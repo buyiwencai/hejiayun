@@ -162,10 +162,10 @@ CREATE TABLE hjy_owner_room (
 -- 初始化数据
 -- ============================================
 
--- 插入超级管理员用户 (密码: 123456)
+-- 插入超级管理员用户 (密码: 123456, BCrypt加密)
 INSERT INTO sys_user (username, password, real_name, phone, status) VALUES
-('admin', '123456', '系统管理员', '13800138000', 1),
-('operator', '123456', '操作员', '13800138001', 1);
+('admin', '$2b$10$HaBggbWrP5aESRr1rGgxbuydukDH2FdmvH76GXqeiSWParKpzbtBq', '系统管理员', '13800138000', 1),
+('operator', '$2b$10$HaBggbWrP5aESRr1rGgxbuydukDH2FdmvH76GXqeiSWParKpzbtBq', '操作员', '13800138001', 1);
 
 -- 插入角色 (简化: 管理员 和 普通用户)
 INSERT INTO sys_role (role_name, role_key, description, status) VALUES

@@ -9,6 +9,7 @@ import com.hejiayun.service.SysRoleService;
 import com.hejiayun.service.SysUserRoleService;
 import com.hejiayun.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -27,16 +28,18 @@ public class LoginController {
     @Autowired
     private SysRoleService sysRoleService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @PostMapping("/login")
     public CommonResult<Map<String, Object>> login(@RequestBody SysUser user) {
         SysUser dbUser = sysUserService.getOne(
                 new LambdaQueryWrapper<SysUser>()
                         .eq(SysUser::getUsername, user.getUsername())
-                        .eq(SysUser::getPassword, user.getPassword())
                         .eq(SysUser::getStatus, 1)
         );
 
-        if (dbUser == null) {
+        if (dbUser == null || !passwordEncoder.matches(user.getPassword(), dbUser.getPassword())) {
             return CommonResult.error("用户名或密码错误");
         }
 

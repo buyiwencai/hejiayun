@@ -8,6 +8,7 @@ import com.hejiayun.model.entity.SysUserRole;
 import com.hejiayun.service.SysUserRoleService;
 import com.hejiayun.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,9 @@ public class SysUserController {
 
     @Autowired
     private SysUserRoleService sysUserRoleService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/list")
     public CommonResult<Page<SysUser>> list(
@@ -53,6 +57,7 @@ public class SysUserController {
     @PostMapping
     @Transactional
     public CommonResult<?> add(@RequestBody SysUser sysUser) {
+        sysUser.setPassword(passwordEncoder.encode(sysUser.getPassword()));
         sysUser.setCreateTime(LocalDateTime.now());
         sysUserService.save(sysUser);
         return CommonResult.success("用户添加成功");

@@ -9,6 +9,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- 清空所有数据
 TRUNCATE TABLE sys_user_role;
+TRUNCATE TABLE sys_user;
 TRUNCATE TABLE sys_role;
 TRUNCATE TABLE hjy_owner_room;
 TRUNCATE TABLE hjy_owner;
@@ -28,6 +29,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 INSERT INTO sys_role (id, role_name, role_key, description, status) VALUES
 (1, '管理员', 'admin', '拥有系统所有权限', 1),
 (2, '普通用户', 'user', '仅可查看数据', 1);
+
+-- 插入用户 (密码: 123456, BCrypt加密)
+INSERT INTO sys_user (id, username, password, real_name, phone, status) VALUES
+(1, 'admin', '$2b$10$HaBggbWrP5aESRr1rGgxbuydukDH2FdmvH76GXqeiSWParKpzbtBq', '系统管理员', '13800138000', 1),
+(2, 'operator', '$2b$10$HaBggbWrP5aESRr1rGgxbuydukDH2FdmvH76GXqeiSWParKpzbtBq', '操作员', '13800138001', 1);
 
 -- 给 admin 用户分配管理员角色
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);
